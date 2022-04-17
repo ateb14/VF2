@@ -1,6 +1,7 @@
 #include <iostream>
 #include "vf2.h"
 #include <set>
+#include <cstdio>
 
 using namespace std;
 
@@ -14,8 +15,7 @@ void read_wiki_vote(){
     graph<int,int> target(8297);
     int from, to;
     while(cin >> from >> to){
-        target.nodelist[from].insert(to, SUCC);
-        target.nodelist[to].insert(from, PREV);
+        target.insert(from, to);
     }
     int caseNum;
     cin.clear();
@@ -27,59 +27,49 @@ void read_wiki_vote(){
         graph<int, int> pattern(m);
         while(n--){
             cin >> from >> to;
-            pattern.nodelist[from].insert(to, SUCC);
-            pattern.nodelist[to].insert(from, PREV);
+            pattern.insert(from,to);
         }
         vf2(&target, &pattern, false);
     }
 }
 
-void read_data(){
-    freopen("data.txt", "r", stdin);
+void read_arrtribute_data(){
+    freopen("attribute.txt", "r", stdin);
     freopen("result.txt", "w", stdout);
-    int caseNum;
-    while(cin >> caseNum){
-        if(caseNum == -1) break;
-        cout << "Case " << caseNum << ":" << endl;
-        int n, m;
-        cin >> n >> m;
-        graph<int,int> target(n), pattern(m);
-        for(int i=1;i<=n;i++){
-            int num;
-            cin >> num;
-            while(num--){
-                int id;
-                cin >> id;
-                target.nodelist[i].insert(id, SUCC, 0);
-            }
-            cin >> num;
-            while(num--){
-                int id;
-                cin >> id;
-                target.nodelist[i].insert(id, PREV, 0);
-            }
-        }
-        for(int i=1;i<=m;i++){
-            int num;
-            cin >> num;
-            while(num--){
-                int id;
-                cin >> id;
-                pattern.nodelist[i].insert(id, SUCC, 0);
-            }
-            cin >> num;
-            while(num--){
-                int id;
-                cin >> id;
-                pattern.nodelist[i].insert(id, PREV, 0);
-            }
-        }
-        init();
-        vf2(&target, &pattern, false);
+    graph<int,int> target(3);
+    int from, to, val;
+    while(cin >> from >> to >> val){
+        if(from == -1) break;
+        target.insert(from, to, val);
     }
+    graph<int,int> pattern(3);
+    while(cin >> from >> to >> val){
+        if(from == -1) break;
+        pattern.insert(from, to, val);
+    }
+    vf2(&target, &pattern, true);
+}
+
+void read_bitcoin(){
+    freopen("soc-sign-bitcoinalpha.csv", "r", stdin);
+    freopen("result.txt", "w", stdout);
+    graph<int,int> target(7604);
+    int from, to, val, tmp;
+    while(scanf("%d,%d,%d,%d",&from, &to, &val, &tmp) != EOF){
+        target.insert(from, to, val);
+    }
+    cin.clear();
+    freopen("bitcoindata.txt", "r", stdin);
+    graph<int,int> pattern(2);
+    while(cin >> from >> to >> val){
+        if(from == -1) break;
+        pattern.insert(from, to, val);
+    }
+    vf2(&target, &pattern, true);
 }
 
 int main() {
-    read_data();
+    freopen("error.txt", "w", stderr);
+    read_bitcoin();
     return 0;
 }
