@@ -1,7 +1,3 @@
-//
-// Created by 汪逸阳 on 2022/3/31.
-//
-
 #include "graph.h"
 #include <cstring>
 #define MAXNUM 9001
@@ -76,7 +72,7 @@ void match(graph<T1, T2>* target, graph<T1, T2>* pattern, int depth){
             }
         }
     }
-    else if(!(ISEMPTY_2(in_1, core_1) || ISEMPTY_2(in_2, core_2))){
+    if(!(ISEMPTY_2(in_1, core_1) || ISEMPTY_2(in_2, core_2))){
         for(int i=1;i<=patternNum;i++){
             if(IST(in_2, core_2, i)){
                 new_m = i;
@@ -94,7 +90,7 @@ void match(graph<T1, T2>* target, graph<T1, T2>* pattern, int depth){
             }
         }
     }
-    else if(ISEMPTY_2(in_1, core_1) && ISEMPTY_2(in_2, core_2) && ISEMPTY_2(out_1, core_1) && ISEMPTY_2(out_2, core_2)){
+    if(ISEMPTY_2(in_1, core_1) && ISEMPTY_2(in_2, core_2) && ISEMPTY_2(out_1, core_1) && ISEMPTY_2(out_2, core_2)){
         for(int i=1;i<=patternNum;i++){
             if(!ISHERE(core_2, i)){
                 new_m = i;
@@ -111,9 +107,6 @@ void match(graph<T1, T2>* target, graph<T1, T2>* pattern, int depth){
                 }
             }
         }
-    }
-    else{
-        return;
     }
 }
 
@@ -142,43 +135,43 @@ void pushStatus(graph<T1, T2>* target, graph<T1, T2>* pattern, int n, int m, int
     }
     // 检查n引入的前驱与后继
     node<T1, T2> *pNode = &target->nodelist[n];
-    nodeAndEdge<T1, T2> *plist = pNode->prevList;
+    edge<T1, T2> *plist = pNode->prevList;
     while(plist){
-        int curIdx = plist->curNode->idx;
+        int curIdx = plist->fromVex;
         if(!ISHERE(in_1, curIdx)){
             in_1[0] ++;
             in_1[curIdx] = depth;
         }
-        plist = plist->next;
+        plist = plist->fromLink;
     }
     plist = pNode->succList;
     while(plist){
-        int curIdx = plist->curNode->idx;
+        int curIdx = plist->toVex;
         if(!ISHERE(out_1, curIdx)){
             out_1[0]++;
             out_1[curIdx] = depth;
         }
-        plist = plist->next;
+        plist = plist->toLink;
     }
     // 检查m引入的前驱与后继
     pNode = &pattern->nodelist[m];
     plist = pNode->prevList;
     while(plist){
-        int curIdx = plist->curNode->idx;
+        int curIdx = plist->fromVex;
         if(!ISHERE(in_2, curIdx)){
             in_2[0]++;
             in_2[curIdx] = depth;
         }
-        plist = plist->next;
+        plist = plist->fromLink;
     }
     plist = pNode->succList;
     while(plist){
-        int curIdx = plist->curNode->idx;
+        int curIdx = plist->toVex;
         if(!ISHERE(out_2, curIdx)){
             out_2[0]++;
             out_2[curIdx] = depth;
         }
-        plist = plist->next;
+        plist = plist->toLink;
     }
 }
 
@@ -205,43 +198,43 @@ void traceback(graph<T1, T2>* target, graph<T1, T2>* pattern, int n, int m, int 
         out_2[0]--;
     }
     node<T1, T2> *pNode = &target->nodelist[n];
-    nodeAndEdge<T1, T2> *plist = pNode->prevList;
+    edge<T1, T2> *plist = pNode->prevList;
     while(plist){
-        int curIdx = plist->curNode->idx;
+        int curIdx = plist->fromVex;
         if(in_1[curIdx] == depth){
             in_1[curIdx] = 0;
             in_1[0]--;
         }
-        plist = plist->next;
+        plist = plist->fromLink;
     }
     plist = pNode->succList;
     while(plist){
-        int curIdx = plist->curNode->idx;
+        int curIdx = plist->toVex;
         if(out_1[curIdx] == depth){
             out_1[curIdx] = 0;
             out_1[0]--;
         }
-        plist = plist->next;
+        plist = plist->toLink;
     }
 
     pNode = &pattern->nodelist[m];
     plist = pNode->prevList;
     while(plist){
-        int curIdx = plist->curNode->idx;
+        int curIdx = plist->fromVex;
         if(in_2[curIdx] == depth){
             in_2[curIdx] = 0;
             in_2[0]--;
         }
-        plist = plist->next;
+        plist = plist->fromLink;
     }
     plist = pNode->succList;
     while(plist){
-        int curIdx = plist->curNode->idx;
+        int curIdx = plist->toVex;
         if(out_2[curIdx] == depth){
             out_2[curIdx] = 0;
             out_2[0]--;
         }
-        plist = plist->next;
+        plist = plist->toLink;
     }
 }
 
@@ -256,62 +249,62 @@ bool syn(graph<T1, T2>* target, graph<T1, T2>* pattern, int n, int m){
     int succ_out_1=0, succ_out_2=0, pred_out_1=0, pred_out_2=0;
     int succ_other_1=0, succ_other_2=0, pred_other_1=0, pred_other_2=0;
     //R_{pred} test
-    nodeAndEdge<T1, T2> *p = target->nodelist[n].prevList;
+    edge<T1, T2> *p = target->nodelist[n].prevList;
     while(p){
-        int curIdx = p->curNode->idx;
+        int curIdx = p->fromVex;
         if(ISHERE(core_1, curIdx)){
             int mm = core_1[curIdx];
-            if(!pattern->nodelist[m].checkPrev(mm)){
+            if(!pattern->checkPrev(m, mm).isTrue){
                 return false;
             }
         }
         if(IST(in_1, core_1, curIdx)) pred_in_1++;
         if(IST(out_1, core_1, curIdx)) pred_out_1++;
         if(!ISHERE(in_1, curIdx) && !ISHERE(out_1, curIdx)) pred_other_1++;
-        p = p->next;
+        p = p->fromLink;
     }
     p = pattern->nodelist[m].prevList;
     while(p){
-        int curIdx = p->curNode->idx;
+        int curIdx = p->fromVex;
         if(ISHERE(core_2, curIdx)){
             int nn = core_2[curIdx];
-            if(!target->nodelist[n].checkPrev(nn)){
+            if(!target->checkPrev(n, nn).isTrue){
                 return false;
             }
         }
         if(IST(in_2, core_2, curIdx)) pred_in_2++;
         if(IST(out_2, core_2, curIdx)) pred_out_2++;
         if(!ISHERE(in_2, curIdx) && !ISHERE(out_2, curIdx)) pred_other_2++;
-        p = p->next;
+        p = p->fromLink;
     }
     //R_{succ} test
     p = target->nodelist[n].succList;
     while(p){
-        int curIdx = p->curNode->idx;
+        int curIdx = p->toVex;
         if(ISHERE(core_1, curIdx)){
             int mm = core_1[curIdx];
-            if(!pattern->nodelist[m].checkSucc(mm)){
+            if(!pattern->checkSucc(m,mm).isTrue){
                 return false;
             }
         }
         if(IST(in_1, core_1, curIdx)) succ_in_1++;
         if(IST(out_1, core_1, curIdx)) succ_out_1++;
         if(!ISHERE(in_1, curIdx) && !ISHERE(out_1, curIdx)) succ_other_1++;
-        p = p->next;
+        p = p->toLink;
     }
     p = pattern->nodelist[m].succList;
     while(p){
-        int curIdx = p->curNode->idx;
+        int curIdx = p->toVex;
         if(ISHERE(core_2, curIdx)){
             int nn = core_2[curIdx];
-            if(!target->nodelist[n].checkSucc(nn)){
+            if(!target->checkSucc(n,nn).isTrue){
                 return false;
             }
         }
         if(IST(in_2, core_2, curIdx)) succ_in_2++;
         if(IST(out_2, core_2, curIdx)) succ_out_2++;
         if(!ISHERE(in_2, curIdx) && !ISHERE(out_2, curIdx)) succ_other_2++;
-        p = p->next;
+        p = p->toLink;
     }
     // R_{in} test
     if(pred_in_1 < pred_in_2 || succ_in_1 < succ_in_2){
@@ -328,13 +321,60 @@ bool syn(graph<T1, T2>* target, graph<T1, T2>* pattern, int n, int m){
     return true;
 }
 
+/*
+ *  Attributes matching
+ */
+
+template <class T>
+bool equal(T first, T second){
+    return first == second;
+}
+
+template<class T>
+bool compare(T first, T second, bool (*cmp)(T, T)){
+    return cmp(first, second);
+}
+
+
 template<class T1, class T2>
 bool sema(graph<T1, T2>* target, graph<T1, T2>* pattern, int n, int m){
     if(!attributeMode){
         return true;
     }
+    /* matching nodeVal */
+    if(!compare(target->nodelist[n].nodeVal, pattern->nodelist[m].nodeVal, equal)){
+        return false;
+    }
+    /* matching edgeVal */
+    for(int mm=1;mm<=patternNum;mm++){
+        if(ISHERE(core_2, mm)){
+            RET<T2> succRetM = pattern->checkSucc(m, mm);
+            if(succRetM.isTrue){
+                RET<T2> succRetN = target->checkSucc(n, core_2[mm]);
+                if(!succRetN.isTrue){
+                    cerr << "This is impossible!" << endl;
+                    return false;
+                }
+                if(!compare(succRetN.val, succRetM.val, equal)){
+                    return false;
+                }
+            }
+            RET<T2> prevRetM = pattern->checkPrev(m, mm);
+            if(prevRetM.isTrue){
+                RET<T2> prevRetN = target->checkPrev(n, core_2[mm]);
+                if(!prevRetN.isTrue){
+                    cerr << "This is impossible!" << endl;
+                    return false;
+                }
+                if(!compare(prevRetN.val, prevRetM.val, equal)){
+                    return false;
+                }
+            }
+        }
+    }
     return true;
 }
+
 
 void output(){
     cout << "match " << matchNum << ":target -- pattern" << endl;
